@@ -1,0 +1,7 @@
+#Configurações das memórias com endereços de 8 bytes
+#Memória cache associada por conjunto (palavras por linha deve ser menor que 128)
+palavras_por_linha=4
+linhas_por_conjunto=2
+numero_de_conjuntos=4
+#Memória principal (número de palavras de ser maior que da cache)
+numero_de_palavras=200
