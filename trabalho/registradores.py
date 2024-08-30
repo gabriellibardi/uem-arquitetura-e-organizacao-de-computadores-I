@@ -31,10 +31,6 @@ regs = {
     'r29' : 0,
     'r30' : 0,
     'r31' : 0,
-    'pc' : 0,
-    'rsp' : 0,
-    'ra' : 0,
-    'of' : 0
 }
 
 def imprime_registradores():
