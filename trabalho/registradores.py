@@ -33,9 +33,26 @@ regs = {
     'r31' : 0,
 }
 
+regs_esp = {
+    'pc' : 0,
+    'rsp' : 0,
+    'ra' : 0,
+    'of' : 0
+}
+
 def imprime_registradores():
     '''
     Imprime na tela todos os registradores
     '''
-    for v, k in regs.items():
-        print(v + ': ' + str(k))
+    print('----- REGISTRADORES DE USO ESPECÍFICO -----\n')
+    for k, v in regs_esp.items():
+        print('{:>3} = {:<3}| '.format(k.upper(), v), end='')
+
+    print('\n\n' + '-' * 29 + ' REGISTRADORES DE USO GERAL ' + '-' * 29 + '\n')
+    c = 0
+    for k, v in regs.items():
+        print('{:>3} = {:<3}| '.format(k, v), end='')
+        c += 1
+        if c == 8:    
+            print()
+            c = 0

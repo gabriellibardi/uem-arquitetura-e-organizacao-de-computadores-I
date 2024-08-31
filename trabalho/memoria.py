@@ -8,4 +8,4 @@ class memoria:
         self.qnt_dados = 0
     
     def __repr__(self) -> str:
-        return str(self.enderecos)
+        return str(self.enderecos[:self.qnt_instrucoes + self.qnt_dados])

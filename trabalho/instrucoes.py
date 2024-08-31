@@ -1,5 +1,4 @@
-import registradores_esp
-from registradores import regs
+from registradores import regs, regs_esp
 
 # Aritméticas
 
@@ -77,7 +76,7 @@ def blti(rs, rt, imm) -> bool:
     Retorna True caso houve desvio
     '''
     if regs[rs] > regs[rt]:
-        registradores_esp.regs['pc'] = int(imm)
+        regs_esp['pc'] = int(imm)
         return True
     return False
 
@@ -88,7 +87,7 @@ def bgti(rs, rt, imm) -> bool:
     Retorna True caso houve desvio
     '''
     if regs[rs] < regs[rt]:
-        registradores_esp.regs['pc'] = int(imm)
+        regs_esp['pc'] = int(imm)
         return True
     return False
 
@@ -99,7 +98,7 @@ def beqi(rs, rt, imm) -> bool:
     Retorna True caso houve desvio
     '''
     if regs[rs] == regs[rt]:
-        registradores_esp.regs['pc'] = int(imm)
+        regs_esp['pc'] = int(imm)
         return True
     return False
 
@@ -110,7 +109,7 @@ def blt(rs, rt, rd) -> bool:
     Retorna True caso houve desvio
     '''
     if regs[rs] > regs[rt]:
-        registradores_esp.regs['pc'] = regs[rd]
+        regs_esp['pc'] = regs[rd]
         return True
     return False
 
@@ -121,7 +120,7 @@ def bgt(rs, rt, rd) -> bool:
     Retorna True caso houve desvio
     '''
     if regs[rs] < regs[rt]:
-        registradores_esp.regs['pc'] = regs[rd]
+        regs_esp['pc'] = regs[rd]
         return True
     return False
     
@@ -132,7 +131,7 @@ def beq(rs, rt, rd) -> bool:
     Retorna True caso houve desvio
     '''
     if regs[rs] == regs[rt]:
-        registradores_esp.regs['pc'] = regs[rd]
+        regs_esp['pc'] = regs[rd]
         return True
     return False
 
@@ -142,7 +141,7 @@ def jr(rd) -> bool:
     pc ← rd
     Retorna True, já que houve desvio
     '''
-    registradores_esp.regs['pc'] = regs[rd]
+    regs_esp['pc'] = regs[rd]
     return True
 
 def jof(rd) -> bool:
@@ -151,8 +150,8 @@ def jof(rd) -> bool:
     Se of == 1 então pc ← rd
     Retorna True caso houve desvio
     '''
-    if registradores_esp.regs['of'] == 1:
-        registradores_esp.regs['pc'] = regs[rd]
+    if regs_esp['of'] == 1:
+        regs_esp['pc'] = regs[rd]
         return True
     return False
 
@@ -162,8 +161,8 @@ def jal(imm) -> bool:
     ra ← pc + 8 (próxima instrução) e pc ← imm
     Retorna True, já que houve desvio
     '''
-    registradores_esp.regs['ra'] = registradores_esp.regs['pc'] + 1
-    registradores_esp.regs['pc'] = imm
+    regs_esp['ra'] = regs_esp['pc'] + 1
+    regs_esp['pc'] = imm
     return True
 
 def ret() -> bool:
@@ -172,7 +171,7 @@ def ret() -> bool:
     pc ← ra
     Retorna True, já que houve desvio
     '''
-    registradores_esp.regs['pc'] = registradores_esp.regs['ra']
+    regs_esp['pc'] = regs_esp['ra']
     return True
 
 # Memória

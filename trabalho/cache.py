@@ -9,4 +9,11 @@ class cache:
         self.instrucoes = enderecos[len(enderecos)//2:]
 
     def __repr__(self) -> str:
-        return 'dados: ' + str(self.dados) + '\ninstrucoes: ' + str(self.instrucoes)
+        dados = ''
+        instrucoes = ''
+        for c in self.dados:
+            dados += '\n' + str(c)
+        for c in self.instrucoes:
+            instrucoes += '\n' + str(c)
+        return 'dados: ' + dados + \
+            '\n\ninstrucoes: ' + instrucoes

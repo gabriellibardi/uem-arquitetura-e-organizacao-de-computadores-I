@@ -2,7 +2,6 @@ import sys
 import io
 import instrucoes
 import registradores
-import registradores_esp
 from memoria import memoria
 from cache import cache
 
@@ -71,15 +70,15 @@ def executa_instrucoes(mem_principal: memoria, mem_cache: cache):
     '''
     Le as instruções que estão armazenadas na memória principal e executa elas
     '''
-    while registradores_esp.regs['pc'] < mem_principal.qnt_instrucoes:
-        instrucao = str(mem_principal.enderecos[registradores_esp.regs['pc']])
+    while registradores.regs_esp['pc'] < mem_principal.qnt_instrucoes:
+        instrucao = str(mem_principal.enderecos[registradores.regs_esp['pc']])
         print('-->  ' + instrucao)
         print()
         mnemonico = instrucao[0:instrucao.find(' ')].strip()
         args = ((instrucao[instrucao.find(' '):].replace(' ', '')).strip()).split(',')
         desvio = executa_instrucao(mnemonico, args) # Executa a instrução e vê se houve desvio
         if not desvio: # PC só é incrementado caso a instrução não seja de desvio
-            registradores_esp.regs['pc'] += 1
+            registradores.regs_esp['pc'] += 1
         imprime_estado(mem_principal, mem_cache)
 
 def executa_instrucao(instrucao: str, args: list) -> bool:
@@ -146,17 +145,12 @@ def imprime_estado(mem_principal, mem_cache):
     Imprime o atual estado do simulador:
     Registradores, Memória principal e Memória Cache
     '''
-    print('============== PC = ' + str(registradores_esp.regs['pc']) + ' ==============')
-    print('\n---- REGISTRADORES: -----')
-    registradores_esp.imprime_registradores()
-    print()
     registradores.imprime_registradores()
-    print('\n---- MEMÓRIA PRINCIPAL: -----')
+    print('\n' + '-' * 55 + ' MEMÓRIA PRINCIPAL: ' + '-' * 55 + '\n')
     print(mem_principal)
-    print('\n---- MEMÓRIA CACHE: -----')
+    print('\n------ MEMÓRIA CACHE: -------\n')
     print(mem_cache)
-    print()
-
+    print('\n' + '▂' * 130 + '\n')
 
 if __name__ == '__main__':
     main()
