@@ -1,3 +1,4 @@
+import registradores_esp
 from registradores import regs
 
 # Aritméticas
@@ -69,81 +70,110 @@ def and_(rd, rs, rt):
 
 # Desvios
 
-def blti(rs, rt, imm):
+def blti(rs, rt, imm) -> bool:
     '''
     Salta caso rs seja maior que rt
     Se rs > rt então pc ← imm
+    Retorna True caso houve desvio
     '''
     if regs[rs] > regs[rt]:
-        regs['pc'] = int(imm)
+        registradores_esp.regs['pc'] = int(imm)
+        return True
+    return False
 
-def bgti(rs, rt, imm):
+def bgti(rs, rt, imm) -> bool:
     '''
     Salta caso rs seja menor que rt
     Se rs < rt então pc ← imm
+    Retorna True caso houve desvio
     '''
     if regs[rs] < regs[rt]:
-        regs['pc'] = int(imm)
+        registradores_esp.regs['pc'] = int(imm)
+        return True
+    return False
 
-def beqi(rs, rt, imm):
+def beqi(rs, rt, imm) -> bool:
     '''
     Salta caso rs e rt sejam iguais
     Se rs = rt então pc ← imm
+    Retorna True caso houve desvio
     '''
     if regs[rs] == regs[rt]:
-        regs['pc'] = int(imm)
+        registradores_esp.regs['pc'] = int(imm)
+        return True
+    return False
 
-def blt(rs, rt, rd):
+def blt(rs, rt, rd) -> bool:
     '''
     Salta para rd caso rs seja maior que rt
     Se rs > rt então pc ← rd
+    Retorna True caso houve desvio
     '''
     if regs[rs] > regs[rt]:
-        regs['pc'] = regs[rd]
+        registradores_esp.regs['pc'] = regs[rd]
+        return True
+    return False
 
-def bgt(rs, rt, rd):
+def bgt(rs, rt, rd) -> bool:
     '''
     Salta para rd caso rs seja menor que rt
     Se rs < rt então pc ← rd
+    Retorna True caso houve desvio
     '''
     if regs[rs] < regs[rt]:
-        regs['pc'] = regs[rd]
+        registradores_esp.regs['pc'] = regs[rd]
+        return True
+    return False
     
-def beq(rs, rt, rd):
+def beq(rs, rt, rd) -> bool:
     '''
     Salta para rd caso rs e rt sejam iguais
     Se rs = rt então pc ← rd
+    Retorna True caso houve desvio
     '''
     if regs[rs] == regs[rt]:
-        regs['pc'] = regs[rd]
+        registradores_esp.regs['pc'] = regs[rd]
+        return True
+    return False
 
-def jr(rd):
+def jr(rd) -> bool:
     '''
     Salto incondicional para rd
     pc ← rd
+    Retorna True, já que houve desvio
     '''
-    regs['pc'] = regs[rd]
+    registradores_esp.regs['pc'] = regs[rd]
+    return True
 
-def jof(rd):
+def jof(rd) -> bool:
     '''
     Salto em caso de overflow
     Se of == 1 então pc ← rd
+    Retorna True caso houve desvio
     '''
-    if regs['of'] == 1:
-        regs['pc'] == regs[rd]
+    if registradores_esp.regs['of'] == 1:
+        registradores_esp.regs['pc'] = regs[rd]
+        return True
+    return False
 
-def jal(imm):
+def jal(imm) -> bool:
     '''
     Salto usado para chamada de função com endereço inicial em imm
     ra ← pc + 8 (próxima instrução) e pc ← imm
+    Retorna True, já que houve desvio
     '''
+    registradores_esp.regs['ra'] = registradores_esp.regs['pc'] + 1
+    registradores_esp.regs['pc'] = imm
+    return True
 
-def ret():
+def ret() -> bool:
     '''
     Salto usado para voltar de uma chamada de função
     pc ← ra
+    Retorna True, já que houve desvio
     '''
-    regs['pc'] = regs['ra']
+    registradores_esp.regs['pc'] = registradores_esp.regs['ra']
+    return True
 
 # Memória
 

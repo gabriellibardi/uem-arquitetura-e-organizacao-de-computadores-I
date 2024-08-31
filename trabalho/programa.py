@@ -2,17 +2,11 @@ import sys
 import io
 import instrucoes
 import registradores
+import registradores_esp
 from memoria import memoria
 from cache import cache
 
 NOME_ARQ_CONFIGURACAO = 'config.txt'
-
-registradores_esp = {
-    'pc' : 0,
-    'rsp' : 0,
-    'ra' : 0,
-    'of' : 0
-}
 
 def main():
     if len(sys.argv) != 2: # Verifica se o programa recebe o número correto de argumentos
@@ -27,7 +21,7 @@ def main():
     
     mem_principal, mem_cache = aplica_configuracoes()
     armazena_instrucoes(arq_instrucoes, mem_principal)
-    executa_instrucoes(mem_principal)
+    executa_instrucoes(mem_principal, mem_cache)
     arq_instrucoes.close()
 
 def aplica_configuracoes():
@@ -73,20 +67,25 @@ def armazena_instrucoes(arq_instrucoes : io.TextIOWrapper, mem_principal : memor
         pos += 1
         linha = (arq_instrucoes.readline()).strip()
 
-def executa_instrucoes(mem_principal: memoria):
+def executa_instrucoes(mem_principal: memoria, mem_cache: cache):
     '''
     Le as instruções que estão armazenadas na memória principal e executa elas
     '''
-    for i in range(mem_principal.qnt_instrucoes):
-        instrucao = str(mem_principal.enderecos[i])
+    while registradores_esp.regs['pc'] < mem_principal.qnt_instrucoes:
+        instrucao = str(mem_principal.enderecos[registradores_esp.regs['pc']])
+        print('-->  ' + instrucao)
+        print()
         mnemonico = instrucao[0:instrucao.find(' ')].strip()
         args = ((instrucao[instrucao.find(' '):].replace(' ', '')).strip()).split(',')
-        executa_instrucao(mnemonico, args)
-        registradores_esp['pc'] += 1
+        desvio = executa_instrucao(mnemonico, args) # Executa a instrução e vê se houve desvio
+        if not desvio: # PC só é incrementado caso a instrução não seja de desvio
+            registradores_esp.regs['pc'] += 1
+        imprime_estado(mem_principal, mem_cache)
 
-def executa_instrucao(instrucao: str, args: list):
+def executa_instrucao(instrucao: str, args: list) -> bool:
     '''
-    Executa a *instrucao* com os *argumentos* passados
+    Executa a *instrucao* com os *argumentos* passados e retorna true
+    caso seja uma instrução de desvio
     '''
     match instrucao:
         # Aritméticas
@@ -111,25 +110,25 @@ def executa_instrucao(instrucao: str, args: list):
             instrucoes.and_(args[0], args[1], args[2])
         # Desvios
         case 'blti':
-            instrucoes.blti(args[0], args[1], args[2])
+            return instrucoes.blti(args[0], args[1], args[2])
         case 'bgti':
-            instrucoes.bgti(args[0], args[1], args[2])
+            return instrucoes.bgti(args[0], args[1], args[2])
         case 'beqi':
-            instrucoes.beqi(args[0], args[1], args[2])
+            return instrucoes.beqi(args[0], args[1], args[2])
         case 'blt':
-            instrucoes.blt(args[0], args[1], args[2])
+            return instrucoes.blt(args[0], args[1], args[2])
         case 'bgt':
-            instrucoes.bgt(args[0], args[1], args[2])
+            return instrucoes.bgt(args[0], args[1], args[2])
         case 'beq':
-            instrucoes.beq(args[0], args[1], args[2])
+            return instrucoes.beq(args[0], args[1], args[2])
         case 'jr':
-            instrucoes.jr(args[0])
+            return instrucoes.jr(args[0])
         case 'jof':
-            instrucoes.jof(args[0])
+            return instrucoes.jof(args[0])
         case 'jal':
-            instrucoes.jal(args[0])
+            return instrucoes.jal(args[0])
         case 'ret':
-            instrucoes.ret()
+            return instrucoes.ret()
         # Memória
         case 'lw':
             instrucoes.lw(args[0], args[1])
@@ -140,6 +139,24 @@ def executa_instrucao(instrucao: str, args: list):
             instrucoes.mov(args[0], args[1])
         case 'movi':
             instrucoes.movi(args[0], args[1])
+    return False
+    
+def imprime_estado(mem_principal, mem_cache):
+    '''
+    Imprime o atual estado do simulador:
+    Registradores, Memória principal e Memória Cache
+    '''
+    print('============== PC = ' + str(registradores_esp.regs['pc']) + ' ==============')
+    print('\n---- REGISTRADORES: -----')
+    registradores_esp.imprime_registradores()
+    print()
+    registradores.imprime_registradores()
+    print('\n---- MEMÓRIA PRINCIPAL: -----')
+    print(mem_principal)
+    print('\n---- MEMÓRIA CACHE: -----')
+    print(mem_cache)
+    print()
+
 
 if __name__ == '__main__':
     main()
