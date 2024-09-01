@@ -74,14 +74,22 @@ def executa_instrucoes(mem_principal: memoria, mem_cache: cache):
         instrucao = str(mem_principal.enderecos[registradores.regs_esp['pc']])
         print('-->  ' + instrucao)
         print()
-        mnemonico = instrucao[0:instrucao.find(' ')].strip()
+        if instrucao == 'ret': # A instrução ret não possui argumentos
+            mnemonico = instrucao
+        else:
+            mnemonico = instrucao[0:instrucao.find(' ')].strip()
         args = ((instrucao[instrucao.find(' '):].replace(' ', '')).strip()).split(',')
-        desvio = executa_instrucao(mnemonico, args) # Executa a instrução e vê se houve desvio
+        desvio = executa_instrucao(mem_principal, mem_cache, mnemonico, args) # Executa a instrução e vê se houve desvio
+        if mem_principal.qnt_instrucoes + \
+            mem_principal.qnt_dados + \
+                mem_principal.qnt_enderecos_retorno == mem_principal.tamanho: # Memória principal está cheia
+            print('Memória principal cheia')
+            quit()
         if not desvio: # PC só é incrementado caso a instrução não seja de desvio
             registradores.regs_esp['pc'] += 1
         imprime_estado(mem_principal, mem_cache)
 
-def executa_instrucao(instrucao: str, args: list) -> bool:
+def executa_instrucao(mem_principal:memoria, mem_cache: cache, instrucao: str, args: list) -> bool:
     '''
     Executa a *instrucao* com os *argumentos* passados e retorna true
     caso seja uma instrução de desvio
@@ -125,9 +133,9 @@ def executa_instrucao(instrucao: str, args: list) -> bool:
         case 'jof':
             return instrucoes.jof(args[0])
         case 'jal':
-            return instrucoes.jal(args[0])
+            return instrucoes.jal(args[0], mem_principal)
         case 'ret':
-            return instrucoes.ret()
+            return instrucoes.ret(mem_principal)
         # Memória
         case 'lw':
             instrucoes.lw(args[0], args[1])
@@ -148,7 +156,7 @@ def imprime_estado(mem_principal, mem_cache):
     registradores.imprime_registradores()
     print('\n' + '-' * 55 + ' MEMÓRIA PRINCIPAL: ' + '-' * 55 + '\n')
     print(mem_principal)
-    print('\n------ MEMÓRIA CACHE: -------\n')
+    print('------ MEMÓRIA CACHE: -------\n')
     print(mem_cache)
     print('\n' + '▂' * 130 + '\n')
 

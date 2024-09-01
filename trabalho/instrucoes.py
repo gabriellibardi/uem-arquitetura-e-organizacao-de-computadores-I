@@ -8,6 +8,10 @@ def add(rd, rs, rt):
     rd ← rs+rt
     '''
     regs[rd] = regs[rs] + regs[rt]
+    if regs[rd] < -2**32 or regs[rd] > 2 ** 32 - 1:
+        regs_esp['of'] = 1
+    else:
+        regs_esp['of'] = 0
 
 def addi(rd, rs, imm):
     '''
@@ -15,6 +19,10 @@ def addi(rd, rs, imm):
     rd ← rs+imm
     '''
     regs[rd] = regs[rs] + int(imm)
+    if regs[rd] < -2**32 or regs[rd] > 2 ** 32 - 1:
+        regs_esp['of'] = 1
+    else:
+        regs_esp['of'] = 0
 
 def sub(rd, rs, rt):
     '''
@@ -22,6 +30,10 @@ def sub(rd, rs, rt):
     rd ← rs-rt
     '''
     regs[rd] = regs[rs] - regs[rt]
+    if regs[rd] < -2**32 or regs[rd] > 2 ** 32 - 1:
+        regs_esp['of'] = 1
+    else:
+        regs_esp['of'] = 0
 
 def subi(rd, rs, imm):
     '''
@@ -29,6 +41,10 @@ def subi(rd, rs, imm):
     rd ← rs-imm
     '''
     regs[rd] = regs[rs] - int(imm)
+    if regs[rd] < -2**32 or regs[rd] > 2 ** 32 - 1:
+        regs_esp['of'] = 1
+    else:
+        regs_esp['of'] = 0
 
 def mul(rd, rs, rt):
     '''
@@ -36,6 +52,10 @@ def mul(rd, rs, rt):
     rd ← rs*rt
     '''
     regs[rd] = regs[rs] * regs[rt]
+    if regs[rd] < -2**32 or regs[rd] > 2 ** 32 - 1:
+        regs_esp['of'] = 1
+    else:
+        regs_esp['of'] = 0
 
 def div(rd, rs, rt):
     '''
@@ -43,6 +63,7 @@ def div(rd, rs, rt):
     rd ← rs div rt
     '''
     regs[rd] = regs[rs] / regs[rt]
+    regs_esp['of'] = 0
 
 # Lógicas
 
@@ -150,29 +171,42 @@ def jof(rd) -> bool:
     Se of == 1 então pc ← rd
     Retorna True caso houve desvio
     '''
-    if regs_esp['of'] == 1:
+    if regs_esp['of']:
         regs_esp['pc'] = regs[rd]
         return True
     return False
 
-def jal(imm) -> bool:
+def jal(imm, mem_principal) -> bool:
     '''
     Salto usado para chamada de função com endereço inicial em imm
     ra ← pc + 8 (próxima instrução) e pc ← imm
     Retorna True, já que houve desvio
     '''
+    regs_esp['rsp'] += 1
+    mem_principal.enderecos[-regs_esp['rsp']] = regs_esp['pc'] + 1
+    mem_principal.qnt_enderecos_retorno += 1
     regs_esp['ra'] = regs_esp['pc'] + 1
-    regs_esp['pc'] = imm
+    regs_esp['pc'] = int(imm)
     return True
 
-def ret() -> bool:
+def ret(mem_principal) -> bool:
     '''
     Salto usado para voltar de uma chamada de função
     pc ← ra
     Retorna True, já que houve desvio
     '''
-    regs_esp['pc'] = regs_esp['ra']
-    return True
+    if regs_esp['rsp'] != 0:
+        regs_esp['pc'] = regs_esp['ra']
+        regs_esp['rsp'] -= 1
+        if regs_esp['rsp'] == 0: # Pilha de retorno esvaziada
+            regs_esp['ra'] = 0
+        else:
+            regs_esp['ra'] = mem_principal.enderecos[-regs_esp['rsp']]
+        mem_principal.qnt_enderecos_retorno -= 1
+        return True
+    else:
+        print('Pilha de retorno vazia.')
+        quit()
 
 # Memória
 

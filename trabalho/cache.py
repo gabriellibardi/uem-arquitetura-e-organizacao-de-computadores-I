@@ -15,5 +15,5 @@ class cache:
             dados += '\n' + str(c)
         for c in self.instrucoes:
             instrucoes += '\n' + str(c)
-        return 'dados: ' + dados + \
-            '\n\ninstrucoes: ' + instrucoes
+        return 'Dados: ' + dados + \
+            '\n\nInstruções: ' + instrucoes
