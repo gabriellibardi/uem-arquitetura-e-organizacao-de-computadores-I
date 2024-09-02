@@ -4,16 +4,22 @@ class cache:
                   num_conjuntos: int) -> None:
         linha = [0] * palavras_por_linha
         conjunto = [linha] * linhas_por_conjunto
-        enderecos = [conjunto] * num_conjuntos * 2
-        self.dados = enderecos[:len(enderecos)//2]
-        self.instrucoes = enderecos[len(enderecos)//2:]
+        self.enderecos = [conjunto] * num_conjuntos
+        self.tam_linha = palavras_por_linha
+        self.num_conjuntos = num_conjuntos
 
+    def busca(self, endereco: int, bloco: int, conjunto: int) -> tuple[bool, str]:
+        '''
+        Busca e retorna o valor armazenado no endereço na cache
+        Caso o endereço esteja na cache, retorna True
+        '''
+        # for linha in self.dados[conjunto]:
+        #     if linha == bloco:
+        #         return (True, self.dados[conjunto][linha][endereco])
+        return (False, '')
+    
     def __repr__(self) -> str:
-        dados = ''
-        instrucoes = ''
-        for c in self.dados:
-            dados += '\n' + str(c)
-        for c in self.instrucoes:
-            instrucoes += '\n' + str(c)
-        return 'Dados: ' + dados + \
-            '\n\nInstruções: ' + instrucoes
+        conjuntos = ''
+        for c in self.enderecos:
+            conjuntos += '\n' + str(c)
+        return conjuntos

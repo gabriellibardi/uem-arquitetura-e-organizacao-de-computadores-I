@@ -1,4 +1,5 @@
 from registradores import regs, regs_esp
+from programa import busca_memoria
 
 # Aritméticas
 
@@ -210,17 +211,23 @@ def ret(mem_principal) -> bool:
 
 # Memória
 
-def lw(rd, imm):
+def lw(rd, arg, mem_principal, mem_cache):
     '''
     Carrega da memória para o registrador rd
     rd ← M[imm+rs]
     '''
+    imm = arg[:arg.find('(')]
+    rs = arg[arg.find('(') + 1 : -1]
+    endereco = int(imm) + regs[rs]
+    regs[rd] = busca_memoria(mem_principal, mem_cache, endereco)
 
-def sw(rs, imm):
+def sw(rs, arg):
     '''
     Armazena o valor de rs na memória
     M[imm+rt] ← rs
     '''
+    imm = arg[:arg.find('(')]
+    rt = arg[arg.find('(') + 1 : -1]
 
 # Movimentação
 

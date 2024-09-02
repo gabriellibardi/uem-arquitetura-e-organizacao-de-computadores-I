@@ -9,6 +9,12 @@ class memoria:
         self.qnt_dados = 0
         self.qnt_enderecos_retorno = 0
     
+    def busca(self, endereco: int) -> str:
+        '''
+        Busca e retorna o valor armazenado no endereço
+        '''
+        return ''
+
     def __repr__(self) -> str:
         buffer = ''
         for i in range(self.qnt_instrucoes + self.qnt_dados):
