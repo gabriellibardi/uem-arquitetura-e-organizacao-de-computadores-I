@@ -4,6 +4,6 @@ movi r11,300
 sw r1,0(r11)
 addi r11,r11,1
 addi r1,r1,3
-blt r11,r2,3
+blti r11,r2,3
 movi r11,3
 lw r4,1(r11)

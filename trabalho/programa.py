@@ -47,13 +47,14 @@ def aplica_configuracoes():
                                                  configuracoes['numero_de_conjuntos']):
         print('O tamanho da memória principal é menor que o da cache.')
         quit()
-    mem_principal = Memoria(configuracoes['numero_de_palavras'])
+    mem_principal = Memoria(configuracoes['numero_de_palavras'],
+                             configuracoes['palavras_por_linha'])
     cache_dados = Cache(configuracoes['palavras_por_linha'],
-               configuracoes['linhas_por_conjunto'],
-                 configuracoes['numero_de_conjuntos'])
+                         configuracoes['linhas_por_conjunto'],
+                          configuracoes['numero_de_conjuntos'])
     cache_instrucoes = Cache(configuracoes['palavras_por_linha'],
-               configuracoes['linhas_por_conjunto'],
-                 configuracoes['numero_de_conjuntos'])
+                              configuracoes['linhas_por_conjunto'],
+                               configuracoes['numero_de_conjuntos'])
     arq_configuracao.close()
     return (mem_principal, cache_dados, cache_instrucoes)
 
@@ -74,22 +75,17 @@ def executa_instrucoes(mem_principal: Memoria, cache_dados: Cache, cache_instruc
     Le as instruções que estão armazenadas na memória principal e executa elas
     '''
     while registradores.regs_esp['pc'] < mem_principal.qnt_instrucoes:
-        instrucao = busca_memoria(mem_principal, cache_instrucoes, registradores.regs_esp['pc'])
-
-
-        #instrucao = str(mem_principal.enderecos[registradores.regs_esp['pc']])
-
-
-        print('-->  ' + instrucao)
-        print()
-        if instrucao == 'ret': # A instrução ret não possui argumentos
+        # Busca da Instrução
+        instrucao = str(busca_memoria(mem_principal, cache_instrucoes, registradores.regs_esp['pc']))
+        print('-->  ' + instrucao + '\n')
+        if instrucao.find(' ') == -1: # Instrução não possui argumentos
             mnemonico = instrucao
         else:
             mnemonico = instrucao[0:instrucao.find(' ')].strip()
         args = ((instrucao[instrucao.find(' '):].replace(' ', '')).strip()).split(',')
         desvio = executa_instrucao(mem_principal, cache_dados, mnemonico, args) # Executa a instrução e vê se houve desvio
         if mem_principal.qnt_instrucoes + \
-            mem_principal.qnt_dados + \
+            len(mem_principal.enderecos_dados_ocupados) + \
                 mem_principal.qnt_enderecos_retorno == mem_principal.tamanho: # Memória principal está cheia
             print('Memória principal cheia')
             quit()
@@ -148,7 +144,7 @@ def executa_instrucao(mem_principal: Memoria, cache_dados: Cache, instrucao: str
         case 'lw':
             instrucoes.lw(args[0], args[1], mem_principal, cache_dados)
         case 'sw':
-            instrucoes.sw(args[0], args[1])
+            instrucoes.sw(args[0], args[1], mem_principal, cache_dados)
         # Movimentação
         case 'mov':
             instrucoes.mov(args[0], args[1])
@@ -156,20 +152,18 @@ def executa_instrucao(mem_principal: Memoria, cache_dados: Cache, instrucao: str
             instrucoes.movi(args[0], args[1])
     return False
 
-def busca_memoria(mem_principal: Memoria, cache: Cache, endereco: int) -> str:
+def busca_memoria(mem_principal: Memoria, cache: Cache, endereco: int) -> str | int:
     '''
     Busca e retorna o valor armazenado no endereço na memória
     '''
-    num_bloco = endereco // cache.tam_linha
-    num_conjunto = num_bloco % cache.num_conjuntos
-
-    hit, valor = cache.busca(endereco, num_bloco, num_conjunto)
+    hit, valor = cache.busca(endereco)
 
     if hit:
         return valor
     else:
-        bloco = mem_principal.busca_bloco(num_bloco, cache.tam_linha)
-        cache.insere(bloco, num_bloco, num_conjunto)
+        bloco = mem_principal.busca_bloco(endereco)
+        num_bloco = endereco // cache.tam_linha
+        cache.insere(bloco, num_bloco)
         return mem_principal.busca_endereco(endereco)
 
 def imprime_estado(mem_principal, cache_dados, cache_instrucoes):
@@ -183,9 +177,9 @@ def imprime_estado(mem_principal, cache_dados, cache_instrucoes):
     print('------ MEMÓRIA CACHE: -------\n')
     print('Dados:')
     print(cache_dados)
-    print('\nInstruções:')
+    print('Instruções:')
     print(cache_instrucoes)
-    print('\n' + '▂' * 130 + '\n')
+    print('▂' * 130 + '\n')
 
 if __name__ == '__main__':
     main()

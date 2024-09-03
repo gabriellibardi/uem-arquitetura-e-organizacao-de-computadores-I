@@ -22,24 +22,29 @@ class Cache:
         self.tam_linha = palavras_por_linha
         self.num_conjuntos = num_conjuntos
 
-    def busca(self, endereco: int, num_bloco: int, num_conjunto: int) -> tuple[bool, str]:
+    def busca(self, endereco: int) -> tuple[bool, str | int]:
         '''
         Busca e retorna o valor armazenado no endereço na cache
         Caso o endereço esteja na cache, retorna True
         '''
+        num_bloco = endereco // self.tam_linha
+        num_conjunto = num_bloco % self.num_conjuntos
+    
         for linha in self.enderecos[num_conjunto]:
             if linha.tag == num_bloco:
                 linha.qnt_acessos += 1
-                return (True, str(linha.palavras[endereco % self.tam_linha]))
+                return (True, linha.palavras[endereco % self.tam_linha])
         return (False, '')
     
-    def insere(self, bloco: list[str | int], num_bloco: int, num_conjunto: int):
+    def insere(self, bloco: list[str | int], num_bloco: int):
         '''
         Insere um *bloco* na cache, dependendo do conjunto no qual
         ele faria parte
         A inserção segue a política de substituição LFU, ou seja, a linha do conjunto
         substituída é aquela que possui menos acessos
         '''
+        num_conjunto = num_bloco % self.num_conjuntos
+
         menor_qnt_acessos = self.enderecos[num_conjunto][0].qnt_acessos
         pos_linha = 0
         for i, linha in enumerate(self.enderecos[num_conjunto]):
