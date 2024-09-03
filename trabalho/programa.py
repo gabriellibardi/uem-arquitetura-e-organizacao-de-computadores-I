@@ -2,8 +2,8 @@ import sys
 import io
 import instrucoes
 import registradores
-from memoria import memoria
-from cache import cache
+from memoria import Memoria
+from cache import Cache
 
 NOME_ARQ_CONFIGURACAO = 'config.txt'
 
@@ -47,17 +47,17 @@ def aplica_configuracoes():
                                                  configuracoes['numero_de_conjuntos']):
         print('O tamanho da memória principal é menor que o da cache.')
         quit()
-    mem_principal = memoria(configuracoes['numero_de_palavras'])
-    cache_dados = cache(configuracoes['palavras_por_linha'],
+    mem_principal = Memoria(configuracoes['numero_de_palavras'])
+    cache_dados = Cache(configuracoes['palavras_por_linha'],
                configuracoes['linhas_por_conjunto'],
                  configuracoes['numero_de_conjuntos'])
-    cache_instrucoes = cache(configuracoes['palavras_por_linha'],
+    cache_instrucoes = Cache(configuracoes['palavras_por_linha'],
                configuracoes['linhas_por_conjunto'],
                  configuracoes['numero_de_conjuntos'])
     arq_configuracao.close()
     return (mem_principal, cache_dados, cache_instrucoes)
 
-def armazena_instrucoes(arq_instrucoes : io.TextIOWrapper, mem_principal : memoria):
+def armazena_instrucoes(arq_instrucoes : io.TextIOWrapper, mem_principal : Memoria):
     '''
     Passa pelo arquivo de instruções e coloca elas na memória
     '''
@@ -69,12 +69,17 @@ def armazena_instrucoes(arq_instrucoes : io.TextIOWrapper, mem_principal : memor
         pos += 1
         linha = (arq_instrucoes.readline()).strip()
 
-def executa_instrucoes(mem_principal: memoria, cache_dados: cache, cache_instrucoes: cache):
+def executa_instrucoes(mem_principal: Memoria, cache_dados: Cache, cache_instrucoes: Cache):
     '''
     Le as instruções que estão armazenadas na memória principal e executa elas
     '''
     while registradores.regs_esp['pc'] < mem_principal.qnt_instrucoes:
-        instrucao = str(mem_principal.enderecos[registradores.regs_esp['pc']])
+        instrucao = busca_memoria(mem_principal, cache_instrucoes, registradores.regs_esp['pc'])
+
+
+        #instrucao = str(mem_principal.enderecos[registradores.regs_esp['pc']])
+
+
         print('-->  ' + instrucao)
         print()
         if instrucao == 'ret': # A instrução ret não possui argumentos
@@ -92,7 +97,7 @@ def executa_instrucoes(mem_principal: memoria, cache_dados: cache, cache_instruc
             registradores.regs_esp['pc'] += 1
         imprime_estado(mem_principal, cache_dados, cache_instrucoes)
 
-def executa_instrucao(mem_principal: memoria, cache_dados: cache, instrucao: str, args: list) -> bool:
+def executa_instrucao(mem_principal: Memoria, cache_dados: Cache, instrucao: str, args: list) -> bool:
     '''
     Executa a *instrucao* com os *argumentos* passados e retorna true
     caso seja uma instrução de desvio
@@ -151,19 +156,21 @@ def executa_instrucao(mem_principal: memoria, cache_dados: cache, instrucao: str
             instrucoes.movi(args[0], args[1])
     return False
 
-def busca_memoria(mem_principal: memoria, cache: cache, endereco: int) -> str:
+def busca_memoria(mem_principal: Memoria, cache: Cache, endereco: int) -> str:
     '''
     Busca e retorna o valor armazenado no endereço na memória
     '''
-    bloco = endereco // cache.tam_linha
-    conjunto = bloco % cache.num_conjuntos
+    num_bloco = endereco // cache.tam_linha
+    num_conjunto = num_bloco % cache.num_conjuntos
 
-    hit, valor = cache.busca(endereco, bloco, conjunto)
+    hit, valor = cache.busca(endereco, num_bloco, num_conjunto)
 
     if hit:
         return valor
     else:
-        return mem_principal.busca(endereco)
+        bloco = mem_principal.busca_bloco(num_bloco, cache.tam_linha)
+        cache.insere(bloco, num_bloco, num_conjunto)
+        return mem_principal.busca_endereco(endereco)
 
 def imprime_estado(mem_principal, cache_dados, cache_instrucoes):
     '''
